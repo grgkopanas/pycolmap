@@ -180,23 +180,22 @@ class SceneManager:
 
     def _load_images_txt(self, input_file):
         self.images = OrderedDict()
-
+        print(input_file)
         with open(input_file, 'r') as f:
-            is_camera_description_line = False
-
-            for line in iter(lambda: f.readline().strip(), ''):
-                if not line or line.startswith('#'):
-                    continue
-
-                is_camera_description_line = not is_camera_description_line
-
+            is_camera_description_line = True
+            for line in f:
+                #is_camera_description_line = not is_camera_description_line
                 data = line.split()
-
+                if not data or data[0].startswith('#'):
+                    continue
                 if is_camera_description_line:
                     image_id = int(data[0])
                     image = Image(data[-1], int(data[-2]),
-                                  Quaternion(np.array(map(float, data[1:5]))),
-                                  np.array(map(float, data[5:8])))
+                                  Quaternion(np.array(data[1:5]).astype(np.float)),
+                                  np.array(data[5:8]).astype(np.float))
+                    self.images[image_id] = image
+                    self.name_to_image_id[image.name] = image_id
+                    self.last_image_id = max(self.last_image_id, image_id)
                 else:
                     image.points2D = np.array(
                         [map(float, data[::3]), map(float, data[1::3])]).T
@@ -207,10 +206,7 @@ class SceneManager:
                     #image.points2D = image.points2D[mask]
                     #image.point3D_ids = image.point3D_ids[mask]
 
-                    self.images[image_id] = image
-                    self.name_to_image_id[image.name] = image_id
-
-                    self.last_image_id = max(self.last_image_id, image_id)
+                
 
     #---------------------------------------------------------------------------
 
